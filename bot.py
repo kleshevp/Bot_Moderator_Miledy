@@ -516,7 +516,7 @@ def check_for_bad_words(message):
 def send_rules(message):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, rules)
-    bot.delete_message(chat_id=message.chat.id, message_id=message.id)
+    bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
 
 
 @bot.message_handler(content_types=['text'])
