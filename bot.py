@@ -421,7 +421,7 @@ def unmute_user(message):
 
 @bot.message_handler(commands=['ban'])
 def ban_user(message):
-    user_id = message.user.id
+    user_id = message.from_user.id
     chat_id = message.chat.id
     user_status = bot.get_chat_member(chat_id, user_id).status
     if user_status in ('administrator', 'creator') or user_id == super_admin:
@@ -442,7 +442,7 @@ def ban_user(message):
 
 @bot.message_handler(commands=['unban'])
 def unban_user(message):
-    user_id = message.user.id
+    user_id = message.from_user.id
     chat_id = message.chat.id
     user_status = bot.get_chat_member(chat_id, user_id).status
     if user_status in ('administrator', 'creator') or user_id == super_admin:
@@ -516,26 +516,7 @@ def check_for_bad_words(message):
 def send_rules(message):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, rules)
-    bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-
-
-@bot.message_handler(content_types=['audio'])
-def audio(message):
-    bot.send_audio(target_user_id, message.audio.file_id)
-    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал аудио выше☝️.")
-
-
-@bot.message_handler(content_types=['sticker'])
-def sticker(message):
-    bot.send_sticker(target_user_id, message.sticker.file_id)
-    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал стикер выше☝️.")
-
-
-@bot.message_handler(content_types=['photo'])
-def photo(message):
-    photo = message.photo[-1]  # Берем последнюю (наивысшего разрешения) фотографию из списка
-    bot.send_photo(target_user_id, photo.file_id)
-    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал фотографию выше☝️.")
+    bot.delete_message(chat_id=message.chat.id, message_id=message.id)
 
 
 @bot.message_handler(content_types=['text'])
