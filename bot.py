@@ -403,7 +403,7 @@ def mute_user(message):
 
 @bot.message_handler(commands=['unmute'])
 def unmute_user(message):
-    user_id = message.user.id
+    user_id = message.from_user.id
     chat_id = message.chat.id
     user_status = bot.get_chat_member(chat_id, user_id).status
     if user_status in ('administrator', 'creator') or user_id == super_admin:
