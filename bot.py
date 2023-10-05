@@ -32,7 +32,7 @@ users_spam_count = {}
 coins_to_add = 0.5  # Количество MiledyCoin, начисляемых за каждое сообщение пользователя
 
 # ID пользователя, которому будут приходить отзывы/предложения и не только...
-target_user_id = "1612644606"
+target_user_id = id
 testers = 1612644606
 super_admin = 1612644606
 
@@ -136,9 +136,15 @@ def report_user(message):
             bot.reply_to(message, "Нельзя отправить /report на самого себя.")
         else:
             complaint_text = message.text
-            bot.send_message(target_user_id,
-                             f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' пожаловался на пользователя @{message.reply_to_message.from_user.username}: {complaint_text}")
-            bot.reply_to(message, "Ваша жалоба была отправлена модераторам.")
+            chat_id = message.chat.id
+            administrators = bot.get_chat_administrators(chat_id)
+            for admin in administrators:
+                if not admin.user.is_bot:
+                    bot.send_message(admin.user.id,
+                                 f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' пожаловался на пользователя @{message.reply_to_message.from_user.username}: {complaint_text}")
+                    bot.reply_to(message, "Ваша жалоба была отправлена модераторам.")
+                else:
+                    pass
     else:
         bot.reply_to(message, "Эта команда должна быть использована в ответ на сообщение пользователя.")
 
@@ -257,14 +263,20 @@ def but1_pressed(call: types.CallbackQuery):
 
 @bot.message_handler(commands=['pin'])
 def pin_message(message):
-    bot.pin_chat_message(message.chat.id, message.reply_to_message.message_id)
-    bot.delete_message(message.chat.id, message.message_id)
+    if message.reply_to_message:
+        bot.pin_chat_message(message.chat.id, message.reply_to_message.message_id)
+        bot.delete_message(message.chat.id, message.message_id)
+    else:
+        bot.send_message(message.chat.id, "Эта команда должна быть ответом сообщение пользователя")
 
 
 @bot.message_handler(commands=['unpin'])
 def unpin_message(message):
-    bot.unpin_chat_message(message.chat.id, message.reply_to_message.message_id)
-    bot.delete_message(message.chat.id, message.message_id)
+    if message.reply_to_message:
+       bot.unpin_chat_message(message.chat.id, message.reply_to_message.message_id)
+       bot.delete_message(message.chat.id, message.message_id)
+    else:
+       bot.send_message("Эта команда должна быть ответом на сообщение пользователя")
 
 
 @bot.message_handler(commands=['help'])
@@ -451,8 +463,6 @@ def unban_user(message):
             user_id = message.reply_to_message.from_user.id
             bot.unban_chat_member(chat_id, user_id)
             bot.send_message(chat_id, f"Пользователь {message.reply_to_message.from_user.username} был разбанен.")
-            # Добавляем разбаненного пользователя в чат
-            bot.add_chat_member(chat_id, user_id)
             Miledy_users_coins[user_id] = 0
             key = (chat_id, user_id)
             users_spam_count[user_id] = 0
@@ -517,6 +527,25 @@ def send_rules(message):
     user_id = message.from_user.id
     bot.send_message(message.chat.id, rules)
     bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+
+
+@bot.message_handler(content_types=['audio'])
+def audio(message):
+    bot.send_audio(target_user_id, message.audio.file_id)
+    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал аудио выше☝️.")
+
+
+@bot.message_handler(content_types=['sticker'])
+def sticker(message):
+    bot.send_sticker(target_user_id, message.sticker.file_id)
+    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал стикер выше☝️.")
+
+
+@bot.message_handler(content_types=['photo'])
+def photo(message):
+    photo = message.photo[-1]  # Берем последнюю (наивысшего разрешения) фотографию из списка
+    bot.send_photo(target_user_id, photo.file_id)
+    bot.send_message(target_user_id, f"Пользователь @{message.from_user.username} в чате @{message.chat.username} под названием: '{message.chat.title}' прислал фотографию выше☝️.")
 
 
 @bot.message_handler(content_types=['text'])
